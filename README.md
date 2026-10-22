@@ -1,5 +1,7 @@
 # Relative Pose Policy Node
 
+[English](README.md) | [简体中文](README_zh.md)
+
 Standalone Dora policy node for the Forge Query endpoint `motion.relative_pose/resolve`. It consumes
 `forge_msgs.JointState` locally, computes FK through `forge-kinematics`, and returns source and
 absolute target poses over the Forge Tool Wire. It has no dependency on `forge-motion-server`.
@@ -21,6 +23,28 @@ serialization, and Tool/domain error translation. `RelativePoseResolver` is inde
 Both objects are deliberately composed in one Dora policy-node process because resolution is a
 short, one-shot query. A separate `RelativeQueryServer` process would add no execution or failure
 boundary.
+
+## Node, Endpoint and Tool API
+
+| Item | Current implementation |
+| --- | --- |
+| Production Nodes | 1: `relative_pose_policy`; source command `forge-relative-motion-policy`; packaged entrypoint is defined in `scripts/build_pyinstaller.sh` |
+| Tool integration | Dora `ToolMessage` provider; caller-facing access through Gateway |
+| Direct HTTP Tool API | 0; this Node does not listen on HTTP; Gateway owns the invocation URL |
+| Endpoints | 1: `motion.relative_pose` |
+| Operations | 1: `resolve` (Query, maximum concurrency 1) |
+| Gateway Tools | Deployment-defined in `tools.specs`; this repository fixes no external Tool ID and does not automatically add a robot-control-sim Tool |
+
+Invocation mapping: `<tool_id from tools.specs> -> motion.relative_pose / resolve -> relative_pose_policy`.
+The Query reads `joint_state` and resolves a relative pose to an absolute target; it sends no motion goal.
+An orchestrator must invoke a separate Motion Action to move. Resolution and the subsequent Action are not atomic.
+
+For complete arguments, results, frames/units, state freshness and errors, see [TOOL_CONTRACTS.md](TOOL_CONTRACTS.md).
+Implementation: [query.py](src/relative_pose_policy_node/query.py).
+
+Compatibility: current dependency declarations are `dora-rs==0.4.1`, `forge-kinematics==1.0.1`, `forge-msgs==1.0.1`. See [pyproject.toml](pyproject.toml) and [uv.lock](uv.lock). The Tool protocol implementation is vendored in this repository. These declarations do not guarantee cross-version interoperability; also check the build revision and Skill lock when using artifacts.
+
+Changes to Node entrypoints, Endpoints or Tool APIs must update this section and the associated configuration/contracts. Follow the [Node README contract](https://github.com/PhyAgentOS/forge/blob/master/CONTRIBUTING.md#node-readme-contract).
 
 ## Install and run
 
