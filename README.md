@@ -1,5 +1,7 @@
 # Relative Pose Policy Node
 
+[English](README.md) | [简体中文](README_zh.md)
+
 Standalone Dora policy node for the Forge Query endpoint `motion.relative_pose/resolve`. It consumes
 `forge_msgs.JointState` locally, computes FK through `forge-kinematics`, and returns source and
 absolute target poses over the Forge Tool Wire. It has no dependency on `forge-motion-server`.
@@ -22,27 +24,27 @@ Both objects are deliberately composed in one Dora policy-node process because r
 short, one-shot query. A separate `RelativeQueryServer` process would add no execution or failure
 boundary.
 
-## Node、Endpoint 与 Tool API / Capability summary
+## Node, Endpoint and Tool API
 
-| 项目 | 当前实现 |
+| Item | Current implementation |
 | --- | --- |
-| 生产 Node | 1：`relative_pose_policy`；源码命令 `forge-relative-motion-policy`，打包入口见 `scripts/build_pyinstaller.sh` |
-| Tool 接入方式 | Dora `ToolMessage` provider；通过 Gateway 暴露调用入口 |
-| 直接 HTTP Tool API | 0；本 Node 不监听 HTTP，调用地址属于 Gateway |
-| Endpoint 数 | 1：`motion.relative_pose` |
-| operation 数 | 1：`resolve`（Query，最大并发 1） |
-| Gateway Tool 数 | 由 `tools.specs` 决定；仓库不固定外部 Tool ID，也不自动增加 robot-control-sim 的 Tool |
+| Production Nodes | 1: `relative_pose_policy`; source command `forge-relative-motion-policy`; packaged entrypoint is defined in `scripts/build_pyinstaller.sh` |
+| Tool integration | Dora `ToolMessage` provider; caller-facing access through Gateway |
+| Direct HTTP Tool API | 0; this Node does not listen on HTTP; Gateway owns the invocation URL |
+| Endpoints | 1: `motion.relative_pose` |
+| Operations | 1: `resolve` (Query, maximum concurrency 1) |
+| Gateway Tools | Deployment-defined in `tools.specs`; this repository fixes no external Tool ID and does not automatically add a robot-control-sim Tool |
 
-调用映射为 `<tool_id from tools.specs> -> motion.relative_pose / resolve -> relative_pose_policy`。
-该 Query 读取 `joint_state`，把相对位姿请求解析成绝对目标；它不发送运动目标。
-需要运动时，由上层编排另行调用 Motion Action；Query 与后续 Action 不构成原子操作。
+Invocation mapping: `<tool_id from tools.specs> -> motion.relative_pose / resolve -> relative_pose_policy`.
+The Query reads `joint_state` and resolves a relative pose to an absolute target; it sends no motion goal.
+An orchestrator must invoke a separate Motion Action to move. Resolution and the subsequent Action are not atomic.
 
-完整参数、返回值、frame/单位、状态新鲜度及错误见 [TOOL_CONTRACTS.md](TOOL_CONTRACTS.md)，
-实现见 [query.py](src/relative_pose_policy_node/query.py)。
+For complete arguments, results, frames/units, state freshness and errors, see [TOOL_CONTRACTS.md](TOOL_CONTRACTS.md).
+Implementation: [query.py](src/relative_pose_policy_node/query.py).
 
-兼容性：当前依赖声明为 `dora-rs==0.4.1`、`forge-kinematics==1.0.1`、`forge-msgs==1.0.1`；以 [pyproject.toml](pyproject.toml) 与 [uv.lock](uv.lock) 为准。 Tool 协议实现为仓库内 vendored 代码。 这些声明不构成跨版本互操作保证；使用制品时还需核对 build revision 和 Skill lock。
+Compatibility: current dependency declarations are `dora-rs==0.4.1`, `forge-kinematics==1.0.1`, `forge-msgs==1.0.1`. See [pyproject.toml](pyproject.toml) and [uv.lock](uv.lock). The Tool protocol implementation is vendored in this repository. These declarations do not guarantee cross-version interoperability; also check the build revision and Skill lock when using artifacts.
 
-后续修改 Node 入口、Endpoint 或 Tool API 时，请同步更新本节及对应配置/契约，遵循 [Node README 规范](https://github.com/PhyAgentOS/forge/blob/master/CONTRIBUTING.md#node-readme-contract)。
+Changes to Node entrypoints, Endpoints or Tool APIs must update this section and the associated configuration/contracts. Follow the [Node README contract](https://github.com/PhyAgentOS/forge/blob/master/CONTRIBUTING.md#node-readme-contract).
 
 ## Install and run
 
