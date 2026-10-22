@@ -22,6 +22,28 @@ Both objects are deliberately composed in one Dora policy-node process because r
 short, one-shot query. A separate `RelativeQueryServer` process would add no execution or failure
 boundary.
 
+## Node、Endpoint 与 Tool API / Capability summary
+
+| 项目 | 当前实现 |
+| --- | --- |
+| 生产 Node | 1：`relative_pose_policy`；源码命令 `forge-relative-motion-policy`，打包入口见 `scripts/build_pyinstaller.sh` |
+| Tool 接入方式 | Dora `ToolMessage` provider；通过 Gateway 暴露调用入口 |
+| 直接 HTTP Tool API | 0；本 Node 不监听 HTTP，调用地址属于 Gateway |
+| Endpoint 数 | 1：`motion.relative_pose` |
+| operation 数 | 1：`resolve`（Query，最大并发 1） |
+| Gateway Tool 数 | 由 `tools.specs` 决定；仓库不固定外部 Tool ID，也不自动增加 robot-control-sim 的 Tool |
+
+调用映射为 `<tool_id from tools.specs> -> motion.relative_pose / resolve -> relative_pose_policy`。
+该 Query 读取 `joint_state`，把相对位姿请求解析成绝对目标；它不发送运动目标。
+需要运动时，由上层编排另行调用 Motion Action；Query 与后续 Action 不构成原子操作。
+
+完整参数、返回值、frame/单位、状态新鲜度及错误见 [TOOL_CONTRACTS.md](TOOL_CONTRACTS.md)，
+实现见 [query.py](src/relative_pose_policy_node/query.py)。
+
+兼容性：当前依赖声明为 `dora-rs==0.4.1`、`forge-kinematics==1.0.1`、`forge-msgs==1.0.1`；以 [pyproject.toml](pyproject.toml) 与 [uv.lock](uv.lock) 为准。 Tool 协议实现为仓库内 vendored 代码。 这些声明不构成跨版本互操作保证；使用制品时还需核对 build revision 和 Skill lock。
+
+后续修改 Node 入口、Endpoint 或 Tool API 时，请同步更新本节及对应配置/契约，遵循 [Node README 规范](https://github.com/PhyAgentOS/forge/blob/master/CONTRIBUTING.md#node-readme-contract)。
+
 ## Install and run
 
 Forge packages resolve from public package indexes (`forge-msgs==1.0.1`, `forge-kinematics==1.0.1`); the Forge Tool protocol is vendored under `src/forge_tool`:
