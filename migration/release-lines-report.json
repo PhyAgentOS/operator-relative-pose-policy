@@ -15,16 +15,15 @@
     "artifacts": [
       {
         "name": "relative_pose_policy_node-1.0.0-py3-none-any.whl",
-        "size": 18742,
-        "sha256": "5f5dfbacd2d55f4ca8d7cb641e858dc8aece7643ae5aba4db1facbea06545bf4"
+        "size": 18742
       },
       {
         "name": "relative_pose_policy_node-1.0.0.tar.gz",
-        "size": 14074,
-        "sha256": "d2db30fddb0f52d935dba541785537097d45a2ad9d617562a8d247d1d7bb49f6"
+        "size": 14074
       }
     ]
   },
+  "source_profile_scope": "Local candidate worktrees; proposed maintenance changes are not deployed or merged yet. Full checksums and raw logs remain in the local workspace.",
   "source_profiles": [
     {
       "repo": "PhyAgentOS/operator-relative-pose-policy",
